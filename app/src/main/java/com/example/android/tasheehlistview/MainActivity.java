@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -61,6 +62,14 @@ public class MainActivity extends AppCompatActivity {
             WordAdapter adapter = new WordAdapter(MainActivity.this,words);
             dataList = (ListView) findViewById(R.id.list);
             dataList.setAdapter(adapter);
+
+
+            dataList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    Toast.makeText(MainActivity.this,"u clicked "+ words.get(position),Toast.LENGTH_LONG).show();
+                }
+            });
 
         }
 
