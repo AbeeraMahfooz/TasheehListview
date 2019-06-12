@@ -2,6 +2,7 @@ package com.example.android.tasheehlistview;
 
 import android.content.Context;
 import android.os.AsyncTask;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -27,12 +28,15 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
+    SwipeRefreshLayout pullToRefresh;
     Context context;
+    String word;
+    WordAdapter adapter;
     Button click;
-    String data="";
-    public  ListView dataList;
-    public  EditText keyword;
-    String key  ="";
+    String data = "";
+    public ListView dataList;
+    public EditText keyword;
+    String key = "";
     final ArrayList<Ayah> words = new ArrayList<Ayah>();
 
     @Override
@@ -40,38 +44,42 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        pullToRefresh = (SwipeRefreshLayout) findViewById(R.id.pullToRefresh);
         click = (Button) findViewById(R.id.button);
-        dataList =(ListView) findViewById(R.id.list);
+        dataList = (ListView) findViewById(R.id.list);
         keyword = (EditText) findViewById(R.id.edit_text_view);
 
         click.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String word = keyword.getText().toString();
-                key = "http://api.alquran.cloud/v1/search/"+word+"/all/en";
-                new FetchData().execute();
 
+                key = "";
+                word = "";
+                word = keyword.getText().toString();
+                key = "http://api.alquran.cloud/v1/search/" + word + "/all/en";
+                new FetchData().execute();
             }
         });
 
+        pullToRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+
+            @Override
+            public void onRefresh() {
+                //Here you can update your data from internet
+                key = "";
+                word = "";
+                word = keyword.getText().toString();
+                key = "http://api.alquran.cloud/v1/search/" + word + "/all/en";
+                new FetchData().execute();
+                pullToRefresh.setRefreshing(false);
+            }
+        });
+
+
     }
-    public class FetchData extends AsyncTask<String,Void,ArrayList>{
-        @Override
-        protected void onPostExecute(ArrayList w) {
-            //super.onPostExecute(w);
-            WordAdapter adapter = new WordAdapter(MainActivity.this,words);
-            dataList = (ListView) findViewById(R.id.list);
-            dataList.setAdapter(adapter);
 
+    public class FetchData extends AsyncTask<String, Void, ArrayList> {
 
-            dataList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    Toast.makeText(MainActivity.this,"u clicked "+ words.get(position),Toast.LENGTH_LONG).show();
-                }
-            });
-
-        }
 
         @Override
         protected ArrayList doInBackground(String... params) {
@@ -82,7 +90,8 @@ public class MainActivity extends AppCompatActivity {
                 InputStream inputStream = httpURLConnection.getInputStream();
                 BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
                 String line = "";
-                while(line != null){
+                data = "";
+                while (line != null) {
                     line = bufferedReader.readLine();
                     data = data + line;
                 }
@@ -91,19 +100,19 @@ public class MainActivity extends AppCompatActivity {
                 JSONObject JO2 = JO1.getJSONObject("data");
                 int counts = JO2.getInt("count");
                 JSONArray JA = JO2.getJSONArray("matches");
+                words.clear();
+
                 for (int i = 0; i < JA.length(); i++) {
                     JSONObject JO = (JSONObject) JA.get(i);
                     JSONObject JOT = JO.getJSONObject("surah");
 
-                    String surahName = (String)JOT.get("englishName");
-                    int ayahNo = (int)JO.get("numberInSurah");
-                    String ayahText = (String)JO.get("text");
+                    String surahName = (String) JOT.get("englishName");
+                    int ayahNo = (int) JO.get("numberInSurah");
+                    String ayahText = (String) JO.get("text");
 
-                    words.add(new Ayah(surahName,ayahText,ayahNo));
+                    words.add(new Ayah(surahName, ayahText, ayahNo));
 
                 }
-
-
 
 
             } catch (MalformedURLException e) {
@@ -114,6 +123,16 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
             return null;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList w) {
+            //super.onPostExecute(w);
+
+            adapter = new WordAdapter(MainActivity.this, words);
+            dataList = (ListView) findViewById(R.id.list);
+            dataList.setAdapter(adapter);
+
         }
     }
 

@@ -26,17 +26,22 @@ public class WordAdapter extends ArrayAdapter<Ayah> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
 
-        LayoutInflater inflater = context.getLayoutInflater();
-        View rowView = inflater.inflate(R.layout.list_item,null,true);
-        TextView surahname = (TextView)rowView.findViewById(R.id.surah_name);
-        TextView ayahno = (TextView)rowView.findViewById(R.id.ayah_no);
-        TextView ayahtext = (TextView)rowView.findViewById(R.id.ayah_text);
+
+        View rowView = convertView;
+        if (rowView == null) {
+
+            LayoutInflater inflater = context.getLayoutInflater();
+            rowView = inflater.inflate(R.layout.list_item, null, true);
+        }
+
+        TextView surahname = (TextView) rowView.findViewById(R.id.surah_name);
+        TextView ayahno = (TextView) rowView.findViewById(R.id.ayah_no);
+        TextView ayahtext = (TextView) rowView.findViewById(R.id.ayah_text);
 
         Ayah currentWord = getItem(position);
         surahname.setText(currentWord.getSurahName());
         ayahno.setText(currentWord.getAyahNo());
         ayahtext.setText(currentWord.getAyahText());
-
 
 
         return rowView;
